@@ -1,0 +1,9 @@
+include "../../lib/bpf/xdp.cogent"
+include "../../lib/bpf.cogent"
+
+run : (Xdp_Packet!) -> (Xdp_Action)
+run(p) =
+  let size = xdp_packet_size(p)
+  and _ = bpf_print_str("packet size: ")
+  and _ = bpf_print_u64(size)
+  in xdp_Pass

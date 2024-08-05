@@ -1,0 +1,8 @@
+$esc:(#include "vmlinux.h")
+$esc:(#include <bpf/bpf_helpers.h>)
+#include "packet-size.cogent.h"
+
+SEC("xdp")
+int xdp_pass(struct xdp_md *ctx) {
+  $exp:run(xdp_md)
+}

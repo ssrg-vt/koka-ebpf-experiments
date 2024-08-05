@@ -1,0 +1,3 @@
+bpf_print_u32 : (U32) -> ()
+bpf_print_u64 : (U64) -> ()
+bpf_print_str : (String) -> ()

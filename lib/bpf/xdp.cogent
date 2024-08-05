@@ -1,0 +1,39 @@
+
+type Xdp_Action = U32
+
+xdp_Aborted : Xdp_Action
+xdp_Aborted = 0
+
+xdp_Drop : Xdp_Action
+xdp_Drop = 1
+
+xdp_Pass : Xdp_Action
+xdp_Pass = 2
+
+xdp_Tx : Xdp_Action
+xdp_Tx = 3
+
+xdp_Redirect : Xdp_Action
+xdp_Redirect = 4
+
+-- xdp_show : Xdp_Action -> String
+-- xdp_show a = a
+--   | xdp_Aborted -> "Aborted"
+--   | xdp_Drop -> "Drop"
+--   | xdp_Pass -> "Pass"
+--   | xdp_Tx -> "Tx"
+--   | xdp_Redirect -> "Redirect"
+
+-- type Xdp_Packet =
+--   { data : Bytes
+--   , metadata : Bytes
+--   }
+
+type Xdp_Packet =
+  { data : U64
+  , data_end : U64
+  }
+
+xdp_packet_size : (Xdp_Packet!) -> U64
+xdp_packet_size p =
+  p.data_end - p.data
