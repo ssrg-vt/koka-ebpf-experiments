@@ -9,6 +9,7 @@ val count = ref(0)
 
 // @section("xdp")
 fun run(p: xdp/packet)
-  bpf/print("current count: " ++ s.count.show)
+  bpf/print("current count: " ++ count.show)
+  count.map(inc)
 
   xdp/Pass

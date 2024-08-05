@@ -1,10 +1,10 @@
-module lib/bpf/print
+module lib/bpf/bindings/print
 
 import ext/num/int
 import ext/num/nat
 
 extern import
-  c file "internal.h"
+  c file "print.h"
 
 //// Unsigned integers ////
 
