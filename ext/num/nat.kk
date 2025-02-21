@@ -3,6 +3,7 @@ module ext/num/nat
 pub import std/num/int32
 pub import std/num/int64
 import ext/unsafe
+import ext/todo
 
 pub alias nat = int32
 
@@ -32,8 +33,8 @@ pub fun int/nat64(i: int): nat64
 
 // nat16 //
 
-pub fun nat16/nat32(i: int16): nat32
-  i.int32
+pub fun nat16/nat32(i: int16): todo nat32
+  todo()
 
 // nat32 //
 

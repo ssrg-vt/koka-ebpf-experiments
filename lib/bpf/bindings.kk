@@ -2,9 +2,6 @@ module lib/bpf/bindings
 
 import ext/num/nat
 
-pub import lib/bpf/bindings/data
-
-
 /*
 u64 bpf_get_current_uid_gid(void)
 
