@@ -1,8 +1,7 @@
 module lib/bpf/xdp
 
-pub import ext/num/int
+pub import ext/bits
 pub import ext/num/nat
-pub import ext/bytes
 
 /* https://elixir.bootlin.com/linux/v6.9-rc7/source/include/uapi/linux/bpf.h */
 
@@ -11,13 +10,12 @@ pub import ext/bytes
  * return codes are reserved for future use. Unknown return codes will
  * result in packet drops and a warning via bpf_warn_invalid_xdp_action().
  */
-pub type action {
+pub enum action
   Aborted // = 0
   Drop
   Pass
   Tx
   Redirect
-}
 
 pub fun action/show(a: action): string
   match a
@@ -31,5 +29,5 @@ pub fun action/show(a: action): string
  * new fields must be added to the end of this structure
  */
 pub ref struct packet
-  data: bytes
-  metadata: bytes
+  data: bits
+  metadata: bits

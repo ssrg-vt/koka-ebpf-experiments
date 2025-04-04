@@ -3,6 +3,7 @@ module ext/array/unboxed/bits64
 import ext/array
 import ext/bits
 import ext/todo
+import ext/num/nat
 
 pub fun new()
   todo

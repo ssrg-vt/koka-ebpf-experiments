@@ -110,7 +110,7 @@ contexts:
         3: entity.name.function.koka
         4: punctuation.separator.koka
       push:
-        - match: '(?=[\)\{\}\[\]=;]|(infix|infixr|infixl|type|alias|interface|instance|extern|external|fun|fn|val|var|with|con|if|then|else|elif|match|inject|handle|handler|return|module|import|as|public|private|abstract|cont)(?![\w\-?'']))'
+        - match: '(?=[\)\{\}\[\]=;]|(infix|infixr|infixl|type|alias|interface|instance|extern|external|fun|fn|val|var|with|con|if|then|else|elif|guard|match|inject|handle|handler|return|module|import|as|public|private|abstract|cont)(?![\w\-?'']))'
           captures:
             0: invalid.keyword.koka
           pop: true
@@ -224,7 +224,7 @@ contexts:
         1: entity.name.class.module.koka
         2: variable.koka
   reservedid:
-    - match: '(infix|infixr|infixl|prefix|postfix|type|cotype|rectype|struct|alias|forall|exists|some|interface|instance|with|extern|external|fun|function|val|var|use|using|con|if|then|else|elif|match|mask|handle|handler|named|return|module|import|as|in|pub|abstract|effect)(?![\w\-?''])'
+    - match: '(infix|infixr|infixl|prefix|postfix|type|cotype|rectype|struct|alias|forall|exists|some|interface|instance|with|extern|external|fun|function|val|var|use|using|con|if|then|else|elif|guard|match|mask|handle|handler|named|return|module|import|as|in|pub|abstract|effect)(?![\w\-?''])'
       scope: keyword.other.koka
   reservedop:
     - match: '(=|\->|:|\.|:=)(?![$%&\*\+@!/\\\^~=\.:\-\?\|<>])'
@@ -256,7 +256,7 @@ contexts:
         1: storage.type.koka
         2: keyword.koka
       push:
-        - match: '(?=[,\)\{\}\[\]=;"`]|  |(infix|infixr|infixl|type|cotype|rectype|effect|alias|interface|instance|extern|external|fun|function|val|var|use|using|con|if|then|else|elif|match|inject|handle|handler|return|module|import|as|public|private|abstract)(?![\w\-?'']))'
+        - match: '(?=[,\)\{\}\[\]=;"`]|  |(infix|infixr|infixl|type|cotype|rectype|effect|alias|interface|instance|extern|external|fun|function|val|var|use|using|con|if|then|else|elif|guard|match|inject|handle|handler|return|module|import|as|public|private|abstract)(?![\w\-?'']))'
           captures:
             0: invalid.keyword.koka
           pop: true
@@ -267,7 +267,7 @@ contexts:
         1: keyword.declaration.type.koka
         2: entity.name.type.storage.type.koka
       push:
-        - match: '(?=[,\)\{\}\[\];"`]|(infix|infixr|infixl|type|cotype|rectype|alias|effect|interface|instance|extern|external|fun|function|val|var|use|using|con|if|then|else|elif|match|inject|handle|handler|return|module|import|as|public|private|abstract)(?![\w\-?'']))'
+        - match: '(?=[,\)\{\}\[\];"`]|(infix|infixr|infixl|type|cotype|rectype|alias|effect|interface|instance|extern|external|fun|function|val|var|use|using|con|if|then|else|elif|guard|match|inject|handle|handler|return|module|import|as|public|private|abstract)(?![\w\-?'']))'
           captures:
             0: invalid.keyword.koka
           pop: true
@@ -280,7 +280,7 @@ contexts:
         1: keyword.declaration.type.koka
         2: entity.name.type.interface.storage.type.interface.koka
       push:
-        - match: '(?=[\)\{\}\[\]=;"`]|(infix|infixr|infixl|type|cotype|rectype|effect|alias|interface|instance|extern|external|fun|function|val|var|use|using|con|if|then|else|elif|match|inject|handle|handler|return|module|import|as|public|private|abstract)(?![\w\-?'']))'
+        - match: '(?=[\)\{\}\[\]=;"`]|(infix|infixr|infixl|type|cotype|rectype|effect|alias|interface|instance|extern|external|fun|function|val|var|use|using|con|if|then|else|elif|guard|match|inject|handle|handler|return|module|import|as|public|private|abstract)(?![\w\-?'']))'
           captures:
             0: punctuation.separator.koka
           pop: true
@@ -291,7 +291,7 @@ contexts:
         1: keyword.koka
         3: storage.type.punctuation.separator.koka
       push:
-        - match: '(>)|(?=[\)\{\}\[\]=;"`]|(infix|infixr|infixl|type|cotype|rectype|effect|alias|interface|instance|extern|external|fun|function|val|var|use|using|con|if|then|else|elif|match|inject|handle|handler|return|module|import|as|public|private|abstract)(?![\w\-?'']))'
+        - match: '(>)|(?=[\)\{\}\[\]=;"`]|(infix|infixr|infixl|type|cotype|rectype|effect|alias|interface|instance|extern|external|fun|function|val|var|use|using|con|if|then|else|elif|guard|match|inject|handle|handler|return|module|import|as|public|private|abstract)(?![\w\-?'']))'
           captures:
             1: storage.type.punctuation.separator.koka
             2: invalid.keyword.koka
@@ -309,7 +309,7 @@ contexts:
         2: entity.name.type.storage.type.koka
         3: storage.type.punctuation.separator.koka
       push:
-        - match: '(>)|(?=[\)\{\}\[\]=;"`]|(infix|infixr|infixl|type|cotype|rectype|effect|alias|interface|instance|extern|external|fun|function|val|var|use|using|con|if|then|else|elif|match|inject|handle|handler|return|module|import|as|public|private|abstract)(?![\w\-?'']))'
+        - match: '(>)|(?=[\)\{\}\[\]=;"`]|(infix|infixr|infixl|type|cotype|rectype|effect|alias|interface|instance|extern|external|fun|function|val|var|use|using|con|if|then|else|elif|guard|match|inject|handle|handler|return|module|import|as|public|private|abstract)(?![\w\-?'']))'
           captures:
             1: storage.type.punctuation.separator.koka
             2: invalid.keyword.koka
@@ -321,7 +321,7 @@ contexts:
         1: keyword.declaration.type.koka
         2: entity.name.type.storage.type.koka
       push:
-        - match: '(?=[\)\{\}\[\]=;"`]|(infix|infixr|infixl|type|cotype|rectype|effect|alias|interface|instance|extern|external|fun|function|val|var|use|using|con|if|then|else|elif|match|inject|handle|handler|return|module|import|as|public|private|abstract)(?![\w\-?'']))'
+        - match: '(?=[\)\{\}\[\]=;"`]|(infix|infixr|infixl|type|cotype|rectype|effect|alias|interface|instance|extern|external|fun|function|val|var|use|using|con|if|then|else|elif|guard|match|inject|handle|handler|return|module|import|as|public|private|abstract)(?![\w\-?'']))'
           captures:
             0: punctuation.separator.koka
           pop: true

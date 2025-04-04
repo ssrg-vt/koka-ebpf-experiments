@@ -1,16 +1,17 @@
 // @licence("Dual BSD/GPL")
 module src/tp/pid-gid
 
+import ext/fun
+
 import lib/bpf
 import lib/bpf/process
 
 val my/pid = 0.nat32
 
 // @section("tp/syscalls/sys_enter_write")
-// FIXME: type of
+// FIXME: implementation of context type
 fun run(c: a)
   val pid = bpf/process/pid()
-  if pid == my/pid then
-    bpf/print("BPF triggered from PID" ++ pid.show)
+  with guard(pid == my/pid) {()}
 
-  0.int32
+  bpf/print("BPF triggered from PID" ++ pid.show)
