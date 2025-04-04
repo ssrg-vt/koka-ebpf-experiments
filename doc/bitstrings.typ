@@ -60,7 +60,10 @@ All-in-all, here we see quite some pointer juggling in C to get out the correct 
 == Bitstrings and binaries
 
 Instead of unsafe casts and pointer magic,
- Erlang and its descendants Elixir and Gleam support _bitstrings_ and _binaries_.
+Erlang and its descendants Elixir and Gleam support _bitstrings_ and _binaries_.
+#footnote[
+  More information on https://www.erlang.org/doc/system/bit_syntax.html.
+]
 Bitstrings are just that: strings of single bits.
 Binaries are bitstrings which length is divisible by 8,
 i.e. a consecutive string of _bytes_.
@@ -190,6 +193,9 @@ It calls our `parse` functions for both headers and pattern matches on the resul
 In between, it checks if the protocols are indeed `Ipv4` and `Tcp`.
 
 The `guard-val-else` syntax is sugar for the following ordinary pattern match:
+#footnote[
+  Based on Rust's syntax described in https://doc.rust-lang.org/rust-by-example/flow_control/if_let.html and https://doc.rust-lang.org/rust-by-example/flow_control/let_else.html.
+]
 ```koka
   guard val p = e0 else e2; e1
 ==>
