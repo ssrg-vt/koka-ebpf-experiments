@@ -1,4 +1,5 @@
-#set raw(syntaxes: ("assets/koka.sublime-syntax",))
+#import "lib/setups.typ": setups
+#show: setups
 
 = Bitstrings for Bee
 

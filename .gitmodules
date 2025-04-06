@@ -1,0 +1,3 @@
+[submodule "doc/lib"]
+	path = doc/lib
+	url = https://github.com/timjs/typst-basic.git
