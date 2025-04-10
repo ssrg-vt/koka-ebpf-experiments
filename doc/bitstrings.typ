@@ -119,8 +119,8 @@ Ethernet headers:
 
 ```koka
 struct ethernet/header
-  dst: binary //<6>
-  src: binary //<6>
+  dst: binary<6>
+  src: binary<6>
   kind: ethernet/header/kind
 
 enum ethernet/header/kind
@@ -186,30 +186,30 @@ On failure, it returns `None`.
 The main function can now be written like this:
 ```koka
 fun main(packet: xdp/packet)
-  guard val Some(eth, rest) = ethernet/header/parse(packet.data) else xdp/Pass
-  guard eth.proto == Ipv4 else xdp/Pass
-  guard val Some(ip, rest) = ip/v4/header/parse(rest) else xdp/Pass
-  guard ip.proto == Tcp else xdp/Pass
+  if val Some(eth, rest) = ethernet/header/parse(packet.data) else xdp/Pass
+  if eth.proto == Ipv4 else xdp/Pass
+  if val Some(ip, rest) = ip/v4/header/parse(rest) else xdp/Pass
+  if ip.proto == Tcp else xdp/Pass
   ...
 ```
 
 It calls our `parse` functions for both headers and pattern matches on the result.
 In between, it checks if the protocols are indeed `Ipv4` and `Tcp`.
 
-The `guard-val-else` syntax is sugar for the following ordinary pattern match:
+The `if-val-else` syntax is sugar for the following ordinary pattern match:
 #footnote[
   Based on Rust's syntax described in https://doc.rust-lang.org/rust-by-example/flow_control/if_let.html and https://doc.rust-lang.org/rust-by-example/flow_control/let_else.html.
 ]
 ```koka
-  guard val p = e0 else e2; e1
+  if val p = e0 else e2; e1
 ==>
   match e0
     p -> e1
     _ -> e2
 ```
-And `guard-else` is sugar for an `if-then-else`:
+And `if-else` is sugar for an `if-then-else`:
 ```koka
-  guard e0 else e2; e1
+  if e0 else e2; e1
 ==>
   if e0 then e1 else e2
 ```
@@ -242,19 +242,18 @@ which is barely readable...
 
 === Optimalisation
 
-Alternatively, because the compiler knows the exact size of the `ethernet/header` and the `ip/header` types, one can imagine writing above parser functions like:
+Alternatively, because the compiler knows the exact size of the `ethernet/header` and the `ip/v4/header` types, one can write above `main` function as follows.
 ```koka
-fun ethernet/header/parse(data: binary) -> option<(ethernet/header, binary)>
-  match data
-    <<header:ethernet/header, rest:_>> -> Some((header, rest))
-    _ -> None // No valid ethernet header
-
-fun ip/v4/header/parse(data: binary) -> option<(ip/v4/header, binary)>
-  match data
-    <<header:ip/v4/header, rest:_>> -> Some((header, rest))
-    _ -> None // No valid Ipv4 header
+fun main(packet: xdp/packet)
+  if val <<eth:ethernet/header, rest:_>> = packet.data else xdp/Pass
+  if eth.proto == Ipv4 else xdp/Pass
+  if val <<ip:ip/v4/header, rest:_>> = rest else xdp/Pass
+  if ip.proto == Tcp else xdp/Pass
+  ...
 ```
-Here we can _reuse_ the underlying binary data in the same way our original C function does.
+This has several advantages:
+- we _reuse_ the underlying binary data in the same way our original C function does;
+- we don't need to add support for tuples.
 
 #pagebreak()
 == Theory
@@ -277,17 +276,19 @@ For a language with numbers, bitstrings, optionals and pattern matching.
 
 #let sep = $; space$
 #let typ(x, t, d) = $keyword("type") #x = #t sep #d$
-#let fun(x, ps, e, d) = $keyword("fun") #x \(#ps\) #e sep #d$
+#let fun(x, ps, e, d) = $keyword("fun") #x \(#ps\) space #e sep #d$
 #let val(x, e, d) = $keyword("val") #x = #e sep #d$
 #let var(x, e, d) = $keyword("var") #x := #e sep #d$
+#let app(x, ps) = $#x\(#ps\)$
+#let con = app
 
-#let option(x) = $#x keyword("?")$
-#let struct(fs) = $keyword("struct") \{#fs\}$
-#let enumtype(w, vs) = $keyword("enum", script: #w) zws \{#vs\}$
+#let toption(x) = $#x keyword("?")$
+#let tstruct(fs) = $keyword("struct") \{#fs\}$
+#let tenum(w, vs) = $keyword("enum", script: #w) zws \{#vs\}$
 
 #let bytes(es) = $<< es >>$
 #let None = $value("None")$
-#let Some(x) = $value("Some")\(#x\)$
+#let Some = $value("Some")$
 #let match(t, e, ps) = $keyword("match", script: #t) zws #e space \{#ps\}$
 #let ifvalelse(t, p, e, r, c) = $keyword("if") keyword("val", script: #t) #p zws = #e keyword("else") #r sep #c$
 
@@ -308,8 +309,8 @@ For a language with numbers, bitstrings, optionals and pattern matching.
       $N.nu$, [numbers],
       $<< many(e, n) >>$, [bit strings],
       $None$, [none options],
-      $Some(e)$, [some options],
-      $X\(many(e, n)\)$, [struct creations],
+      $con(Some, e)$, [some options],
+      $con(X, many(e, n))$, [struct creations],
       $e.x$, [field accesses],
       $match(tau, e_0, many(p |-> e, n))$, [pattern matches],
       $ifvalelse(tau, p_0, e_0, e_1, e_2)$, [pattern guards],
@@ -318,7 +319,7 @@ For a language with numbers, bitstrings, optionals and pattern matching.
     #grammar("Patterns", $p$,
       // $x$, [variable patterns],
       $None$, [none patterns],
-      $Some(x)$, [some patterns#footnote[We don't allow nested patterns here.]],
+      $con(Some, x)$, [some patterns#footnote[We don't allow nested patterns here.]],
       $<< many(x : tau, n) >>$, [bit string patterns#footnote[Idem.]],
     )
 
@@ -337,9 +338,9 @@ For a language with numbers, bitstrings, optionals and pattern matching.
       // $x$, [type names],
       $nu$, [number types],
       $name.bytes\(N)$, [byte types],
-      $option(tau)$, [option types],
-      $struct(many(l : tau, n))$, [struct types],
-      $enumtype(W, many(L, n))$, [enum types],
+      $toption(tau)$, [option types],
+      $tstruct(many(l : tau, n))$, [struct types],
+      $tenum(W, many(L, n))$, [enum types],
       // $alpha$, [type variables],
     )
 
@@ -379,9 +380,9 @@ For a language with numbers, bitstrings, optionals and pattern matching.
   table.hline(),
   $(name.b|name.n|name.i)W$, [numbers], $W$, $W$,
   $name.bytes\(N)$, [bytes], $name.ptr + name.size$, $8 times N$,
-  $option(tau)$, [options], $name.ptr$, $size(tau)$,
-  $struct(many(x : tau, n))$, [structs], $name.ptr$, $Sigma_n tau_n$,
-  $enumtype(W, many(x, n))$, [enums], $W$, $W$,
+  $toption(tau)$, [options], $name.ptr$, $size(tau)$,
+  $tstruct(many(x : tau, n))$, [structs], $name.ptr$, $Sigma_n tau_n$,
+  $tenum(W, many(x, n))$, [enums], $W$, $W$,
   // $alpha$, [name variables], $name.ptr$, $arrow.zigzag$,
   table.hline(),
 )
@@ -393,20 +394,46 @@ For a language with numbers, bitstrings, optionals and pattern matching.
 
 #function($tr("Expression", "Type") -> "C-code"$,
   $tr(N.nu, nu)$, [`(`$nu$`)`$N$],
-  $tr(<< many(e, n) >>, name.bytes)$, [`(b8*){`$tr(many(e, n), name.b\8)$`}`],
+  $tr(<< many(e, n) >>, name.bytes)$, [`(uint8_t*){`$tr(many(e, n), name.b\8)$`}`],
   $tr(None, name.option\(tau\))$, [`NULL`],
   $tr(Some(e), name.option\(tau\))$, $tr(e, tau)$,
-  $tr(L\(many(l = e, n)\), struct(many(l : tau, n)))$, [`(struct `$L$`*){`$many(tr(e, tau), n)$`}`],
+  $tr(L\(many(l = e, n)\), tstruct(many(l : tau, n)))$, [`(struct `$L$`*){`$many(tr(e, tau), n)$`}`],
   $tr(e.l, tau)$, [`(`$tr(e, tau)$`)->l`],
   // $tr(match(option(tau), e_0, Some(x) -> e_2\, None |-> e_1), tau)$, [],
-  $tr(ifvalelse(option(tau), Some(x), e_0, e_1, e_2), tau)$, [
-    `if (`$tr(e_0, option(tau))$` == NULL) { return `$tr(e_1, tau)$` }`\
+  $tr(ifvalelse(toption(tau), con(Some, x), e_0, e_1, e_2), tau)$, [
+    `if (`$tr(e_0, toption(tau))$` == NULL) { return `$tr(e_1, tau)$` }`\
     $tr(e_2, tau)$
   ],
   // $tr(match(bytes, e_0, << x_1 : tau_1\, x_2 : _ >> zws |-> e_1\, \_ |-> e_2), tau)$, [`if (`$tr(tau_1, "")$` x = `$tr(e_0, tau_1)$`; )`],
   // $tr(match(bytes, e_0, << many(x : tau, n) >> zws |-> e_2\, \_ |-> e_1), tau)$, [see below],
   $tr(ifvalelse(bytes, << many(x : tau, n) >>, e_0, e_1, e_2), tau)$, [see below, with $r_i$ and $s_i$ fresh for all $i$],
 )
+
+#function($tr("Type", "") -> "C-code"$,
+  $nu$, [$nu$],
+  $name.bytes\(N)$, [`bytes_t`\
+    where#footnote[Probably this needs some extra work, as eBFP doesn't support passing structs as parameters.]
+    `typedef struct {size_t size; uint8_t *data} bytes_t;`
+  ],
+  $toption(tau)$, [$tr(tau, "")$ which can be `NULL`],
+  $tstruct(many(l : tau, n))$, [`struct {`$many(tr(l, tau), n)$`}`],
+)
+
+#grid(columns: (1fr, 1fr),
+  [
+    #function($tr("Expression-list", "Type") -> "C-code"$,
+      $tr(empty, \_)$, [`/* end */`],
+      $tr(e_0 :: many(e, n), tau)$, [$tr(e_0, tau)$`, `$tr(many(e, n), tau)$],
+    )
+  ],[
+    #function($tr("Label-list", "") -> "C-code"$,
+      $tr(empty, "")$, [`/* end */`],
+      $tr(l_0 : tau_0 :: many(l, n), "")$, [$l$`: `$tr(tau_0, "")$`, `$tr(many(l, n), "")$],
+    )
+  ]
+)
+
+==== Translating pattern matching on bitstrings
 
 #set enum(start: 0)
 
@@ -424,8 +451,3 @@ For a language with numbers, bitstrings, optionals and pattern matching.
   \ $...$
 + Finally, execute the happy path.
   \ $tr(e_2, tau)$\
-
-#function($tr("Expression-list", "Type") -> "C-code"$,
-  $tr([], \_)$, [`/* end */`],
-  $tr(e_0 :: many(e, n), tau)$, [$tr(e_0, tau)$`, `$tr(many(e, n), tau)$],
-)
