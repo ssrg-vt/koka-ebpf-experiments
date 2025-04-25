@@ -395,8 +395,8 @@ For a language with numbers, bitstrings, optionals and pattern matching.
 #function($tr("Expression", "Type") -> "C-code"$,
   $tr(N.nu, nu)$, [`(`$nu$`)`$N$],
   $tr(<< many(e, n) >>, name.bytes)$, [`(uint8_t*){`$tr(many(e, n), name.b\8)$`}`],
-  $tr(None, name.option\(tau\))$, [`NULL`],
-  $tr(Some(e), name.option\(tau\))$, $tr(e, tau)$,
+  $tr(None, name.option\(tau\))$, [`NULL` (should only work if $tau$ is a reference type)],
+  $tr(Some(e), name.option\(tau\))$, [$tr(e, tau)$ (idem)],
   $tr(L\(many(l = e, n)\), tstruct(many(l : tau, n)))$, [`(struct `$L$`*){`$many(tr(e, tau), n)$`}`],
   $tr(e.l, tau)$, [`(`$tr(e, tau)$`)->l`],
   // $tr(match(option(tau), e_0, Some(x) -> e_2\, None |-> e_1), tau)$, [],
@@ -412,8 +412,16 @@ For a language with numbers, bitstrings, optionals and pattern matching.
 #function($tr("Type", "") -> "C-code"$,
   $nu$, [$nu$],
   $name.bytes\(N)$, [`bytes_t`\
-    where#footnote[Probably this needs some extra work, as eBFP doesn't support passing structs as parameters.]
-    `typedef struct {size_t size; uint8_t *data} bytes_t;`
+    where#footnote[
+      Maybe this needs some extra work, as eBFP doesn't support passing structs as parameters.
+    ] #footnote[
+      More ideal would be to use
+      `typedef struct {uint8_t *data; size_t size} bytes_t;`
+      instead of above definition,
+      but most data in the Linux kernel seems to be encoded with begin- and end-pointers.
+      This means that we can easily cast all structs that begin with `data` and `data_end` pointers to our `bytes_t` type.
+    ]
+    `typedef struct {uint8_t *start; uint8_t *end} bytes_t;`
   ],
   $toption(tau)$, [$tr(tau, "")$ which can be `NULL`],
   $tstruct(many(l : tau, n))$, [`struct {`$many(tr(l, tau), n)$`}`],
@@ -437,16 +445,21 @@ For a language with numbers, bitstrings, optionals and pattern matching.
 
 #set enum(start: 0)
 
-+ Start by evaluating $e_0$.
++ Start by evaluating $e_0$ and cast it to our `bytes_t` type.
   \ `bytes_t *`$r_0$` = `$tr(e_0, tau)$`;`
 + To translate the first pattern match, we calculate the size of type $tau_1$.
   \ `size_t `$s_1$` = sizeof(`$tr(tau_1, "")$`);`
-+ Now, if there is not enough data available for $tau_1$, bail out with $e_1$.
-  \ `if (`$r_0$`->size < `$s_1$`) { return `$tr(e_1, tau)$` }`
++ Now, if there is not enough data available for $tau_1$, bail out with $e_1$.#footnote[
+    We need to make sure this check is right, ±1 byte is important!
+    Also, maybe `size_t` needs to be casted to something to do the pointer arithmetic, I didn't check this.
+  ] #footnote[
+    Note that, indeed, $e_1$ is copied $n$ times if there are $n$ bitstring patterns.
+  ]
+  \ `if (`$r_0$`->start + `$s_1$` > `$r_0$`->end) { return `$tr(e_1, tau)$` }`
 + Otherwise, we continue by casting the bytes to the desired type.
   \ $tr(tau_1, "")$` `$x_1$` = `$r_0$`->data;`\
-+ To prepare for the next pattern, we decrease the size and increase the data pointer.
-  \ `bytes_t *`$r_1$` = {`$r_0$`->size - `$s_1$`, `$r_0$`->data + `$s_1$`};`\
++ To prepare for the next pattern, we move the start pointer of the byte slice.
+  \ `bytes_t *`$r_1$` = {`$r_0$`->start + `$s_1$`, `$r_0$`->end};`\
 + Repeat steps 1 till 4 for all next patterns.
   \ $...$
 + Finally, execute the happy path.
