@@ -282,9 +282,12 @@ For a language with numbers, bitstrings, optionals and pattern matching.
 #let app(x, ps) = $#x\(#ps\)$
 #let con = app
 
-#let toption(x) = $#x keyword("?")$
 #let tstruct(fs) = $keyword("struct") \{#fs\}$
 #let tenum(w, vs) = $keyword("enum", script: #w) zws \{#vs\}$
+#let tbytes(n) = $value("bytes")(#n)$
+#let toption(t) = $value("option")(#t)$ // keyword("?")$
+#let tbox(t) = $value("box")(#t)$
+#let tmap(t1, t2) = $value("map")(#t1, #t2)$
 
 #let bytes(es) = $<< es >>$
 #let None = $value("None")$
@@ -335,13 +338,21 @@ For a language with numbers, bitstrings, optionals and pattern matching.
     === Types
 
     #grammar("Types", $tau$,
-      // $x$, [type names],
-      $nu$, [number types],
-      $name.bytes\(N)$, [byte types],
-      $toption(tau)$, [option types],
-      $tstruct(many(l : tau, n))$, [struct types],
-      $tenum(W, many(L, n))$, [enum types],
       // $alpha$, [type variables],
+      $upsilon$, [value types],
+      $pi$, [pointer types],
+    )
+
+    #grammar("Value types", $upsilon$,
+      $nu$, [number types],
+      $tenum(W, many(l, n))$, [enum types],
+    )
+
+    #grammar("Pointer types", $pi$,
+      $tbytes(N)$, [byte types],
+      $toption(pi)$, [option types],
+      $tmap(pi_1, pi_2)$, [map types],
+      $tstruct(many(l : tau, n))$, [struct types],
     )
 
     #grammar("Number types", $nu$,
@@ -379,7 +390,7 @@ For a language with numbers, bitstrings, optionals and pattern matching.
   [Type], [Name], [Repr], [Size],
   table.hline(),
   $(name.b|name.n|name.i)W$, [numbers], $W$, $W$,
-  $name.bytes\(N)$, [bytes], $name.ptr + name.size$, $8 times N$,
+  $tbytes(N)$, [bytes], $name.ptr + name.size$, $8 times N$,
   $toption(tau)$, [options], $name.ptr$, $size(tau)$,
   $tstruct(many(x : tau, n))$, [structs], $name.ptr$, $Sigma_n tau_n$,
   $tenum(W, many(x, n))$, [enums], $W$, $W$,
@@ -394,9 +405,9 @@ For a language with numbers, bitstrings, optionals and pattern matching.
 
 #function($tr("Expression", "Type") -> "C-code"$,
   $tr(N.nu, nu)$, [`(`$nu$`)`$N$],
-  $tr(<< many(e, n) >>, name.bytes)$, [`(uint8_t*){`$tr(many(e, n), name.b\8)$`}`],
-  $tr(None, name.option\(tau\))$, [`NULL` (should only work if $tau$ is a reference type)],
-  $tr(Some(e), name.option\(tau\))$, [$tr(e, tau)$ (idem)],
+  $tr(<< many(e, n) >>, tbytes(N))$, [`(uint8_t*){`$tr(many(e, n), name.b\8)$`}`],
+  $tr(None, toption(pi))$, [`NULL` (should only work if $tau$ is a reference type)],
+  $tr(Some(e), toption(pi))$, [$tr(e, tau)$ (idem)],
   $tr(L\(many(l = e, n)\), tstruct(many(l : tau, n)))$, [`(struct `$L$`*){`$many(tr(e, tau), n)$`}`],
   $tr(e.l, tau)$, [`(`$tr(e, tau)$`)->l`],
   // $tr(match(option(tau), e_0, Some(x) -> e_2\, None |-> e_1), tau)$, [],
@@ -411,7 +422,8 @@ For a language with numbers, bitstrings, optionals and pattern matching.
 
 #function($tr("Type", "") -> "C-code"$,
   $nu$, [$nu$],
-  $name.bytes\(N)$, [`bytes_t`\
+  $tenum(W, many(L, n))$, [`enum {`$many(L, n)$`}`],
+  $tbytes(N)$, [`bytes_t`\
     where#footnote[
       Maybe this needs some extra work, as eBFP doesn't support passing structs as parameters.
     ] #footnote[
@@ -424,6 +436,7 @@ For a language with numbers, bitstrings, optionals and pattern matching.
     `typedef struct {uint8_t *start; uint8_t *end} bytes_t;`
   ],
   $toption(tau)$, [$tr(tau, "")$ which can be `NULL`],
+  $tmap(pi_1,pi_2)$, [`void*`],
   $tstruct(many(l : tau, n))$, [`struct {`$many(tr(l, tau), n)$`}`],
 )
 
