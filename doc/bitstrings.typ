@@ -350,6 +350,7 @@ For a language with numbers, bitstrings, optionals and pattern matching.
 
     #grammar("Pointer types", $pi$,
       $tbytes(N)$, [byte types],
+      $tbox(tau)$, [boxed types],
       $toption(pi)$, [option types],
       $tmap(pi_1, pi_2)$, [map types],
       $tstruct(many(l : tau, n))$, [struct types],
@@ -391,7 +392,7 @@ For a language with numbers, bitstrings, optionals and pattern matching.
   table.hline(),
   $(name.b|name.n|name.i)W$, [numbers], $W$, $W$,
   $tbytes(N)$, [bytes], $name.ptr + name.size$, $8 times N$,
-  $toption(tau)$, [options], $name.ptr$, $size(tau)$,
+  $toption(pi)$, [options], $name.ptr$, $size(pi)$,
   $tstruct(many(x : tau, n))$, [structs], $name.ptr$, $Sigma_n tau_n$,
   $tenum(W, many(x, n))$, [enums], $W$, $W$,
   // $alpha$, [name variables], $name.ptr$, $arrow.zigzag$,
@@ -411,9 +412,9 @@ For a language with numbers, bitstrings, optionals and pattern matching.
   $tr(L\(many(l = e, n)\), tstruct(many(l : tau, n)))$, [`(struct `$L$`*){`$many(tr(e, tau), n)$`}`],
   $tr(e.l, tau)$, [`(`$tr(e, tau)$`)->l`],
   // $tr(match(option(tau), e_0, Some(x) -> e_2\, None |-> e_1), tau)$, [],
-  $tr(ifvalelse(toption(tau), con(Some, x), e_0, e_1, e_2), tau)$, [
-    `if (`$tr(e_0, toption(tau))$` == NULL) { return `$tr(e_1, tau)$` }`\
-    $tr(e_2, tau)$
+  $tr(ifvalelse(toption(pi), con(Some, x), e_0, e_1, e_2), pi)$, [
+    `if (`$tr(e_0, toption(pi))$` == NULL) { return `$tr(e_1, pi)$` }`\
+    $tr(e_2, pi)$
   ],
   // $tr(match(bytes, e_0, << x_1 : tau_1\, x_2 : _ >> zws |-> e_1\, \_ |-> e_2), tau)$, [`if (`$tr(tau_1, "")$` x = `$tr(e_0, tau_1)$`; )`],
   // $tr(match(bytes, e_0, << many(x : tau, n) >> zws |-> e_2\, \_ |-> e_1), tau)$, [see below],
@@ -435,7 +436,8 @@ For a language with numbers, bitstrings, optionals and pattern matching.
     ]
     `typedef struct {uint8_t *start; uint8_t *end} bytes_t;`
   ],
-  $toption(tau)$, [$tr(tau, "")$ which can be `NULL`],
+  $tbox(tau)$, [`void*`],
+  $toption(pi)$, [$tr(pi, "")$ which can be `NULL`],
   $tmap(pi_1,pi_2)$, [`void*`],
   $tstruct(many(l : tau, n))$, [`struct {`$many(tr(l, tau), n)$`}`],
 )
